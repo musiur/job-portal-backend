@@ -27,7 +27,7 @@ exports.register = async (req, res) => {
 
     // sending error message if found error while creating account in DB
     if (!NewUser) {
-      res.status(500).send({
+      return res.status(500).send({
         message: "Internal server error!",
       });
     }
