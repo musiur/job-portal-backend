@@ -13,7 +13,7 @@ exports.getAllRoles = async (req, res) => {
     res.status(200).send({ message: "Jobs found successfully.", roles });
   } catch (error) {
     res.status(500).send({
-      message: "Internal server error!",
+      message: "Something went wrong",
     });
   }
 };
@@ -32,7 +32,7 @@ exports.getSingleRole = async (req, res) => {
   } catch (error) {
     // console.log(error)
     res.status(500).send({
-      message: "Internal server error!",
+      message: "Something went wrong!",
     });
   }
 };
@@ -44,14 +44,14 @@ exports.createRole = async (req, res) => {
     // console.log(roles)
     if (!roles) {
       return res.status(500).send({
-        message: "Internal server error!",
+        message: "Couldn't create new role!",
       });
     }
     res.status(200).send({ message: "Role created successfully!", roles });
   } catch (error) {
     // console.log(error)
     res.status(500).send({
-      message: "Internal server error!",
+      message: "Something went wrong!",
     });
   }
 };
