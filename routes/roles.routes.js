@@ -1,7 +1,9 @@
 const express = require("express");
-const { getAllRoles, getSingleRole, createRole, updateRole, deleteRole } = require("../controllers/roles.controller");
+const { getAllRoles, getSingleRole, createRole, updateRole, deleteRole, getRolesWithoutJobs, getRolesForJob } = require("../controllers/roles.controller");
 const RoleRouter = express.Router();
 RoleRouter.get("/", getAllRoles);
+RoleRouter.get("/unpublished", getRolesWithoutJobs);
+RoleRouter.get("/available/:_id", getRolesForJob);
 RoleRouter.get("/:_id", getSingleRole);
 RoleRouter.post("/", createRole);
 RoleRouter.patch("/:_id", updateRole);

@@ -62,7 +62,9 @@ exports.updateRole = async (req, res) => {
     const updatedRole = req.body;
 
     // Update the role document
-    const role = await RoleModel.findByIdAndUpdate(_id, updatedRole, { new: true });
+    const role = await RoleModel.findByIdAndUpdate(_id, updatedRole, {
+      new: true,
+    });
 
     // If the role is not found, return 404
     if (!role) {
@@ -70,7 +72,10 @@ exports.updateRole = async (req, res) => {
     }
 
     // Update related jobs if necessary
-    await JobModel.updateMany({ 'roles._id': _id }, { $set: { 'roles.$': updatedRole } });
+    await JobModel.updateMany(
+      { "roles._id": _id },
+      { $set: { "roles.$": updatedRole } }
+    );
 
     res.status(200).json({ message: "Role updated successfully.", role });
   } catch (error) {
@@ -95,6 +100,79 @@ exports.deleteRole = async (req, res) => {
     await JobModel.updateMany({}, { $pull: { roles: { _id: _id } } });
 
     res.status(200).json({ message: "Role deleted successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+exports.getRolesWithoutJobs = async (req, res) => {
+  try {
+    // Perform a left outer join between roles and jobs collections
+    const rolesWithoutJobs = await RoleModel.aggregate([
+      {
+        $lookup: {
+          from: "jobs", // name of the jobs collection
+          localField: "_id",
+          foreignField: "roles._id",
+          as: "jobs",
+        },
+      },
+      {
+        $match: {
+          jobs: { $size: 0 }, // Filter roles with no jobs
+        },
+      },
+    ]);
+
+    res
+      .status(200)
+      .json({
+        roles: rolesWithoutJobs,
+        message: "Roles are not assigned to any jobs",
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+exports.getRolesForJob = async (req, res) => {
+  try {
+    const { _id } = req.params;
+
+    // Find the job by its ID
+    const job = await JobModel.findById(_id);
+
+    if (!job) {
+      return res.status(404).json({ message: "Job not found." });
+    }
+
+    // Find roles associated with the specific job
+    const rolesForJob = await RoleModel.find({ _id: { $in: job.roles.map(role => role._id) } });
+
+    // Find roles that are not associated with any other jobs
+    // Perform a left outer join between roles and jobs collections
+    const rolesWithoutJobs = await RoleModel.aggregate([
+      {
+        $lookup: {
+          from: "jobs", // name of the jobs collection
+          localField: "_id",
+          foreignField: "roles._id",
+          as: "jobs",
+        },
+      },
+      {
+        $match: {
+          jobs: { $size: 0 }, // Filter roles with no jobs
+        },
+      },
+    ]);
+
+    // Combine both sets of roles into a single array
+    const allRoles = [...rolesForJob, ...rolesWithoutJobs];
+
+    res.status(200).json({ roles: allRoles });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error." });
