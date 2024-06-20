@@ -30,6 +30,6 @@ app.get("/", (req, res) => {
 
 app.use(GlobalErrorExceptions);
 
-app.listen(Configs.PORT, () =>
+app.listen(Configs.PORT || 3000, () =>
   console.log(`Server running on http://localhost:${Configs.PORT}`)
 );
